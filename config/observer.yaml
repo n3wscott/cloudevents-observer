@@ -1,0 +1,58 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: observer
+spec:
+  template:
+    spec:
+      serviceAccountName: observer
+      containers:
+        - image: ko://knative.dev/eventing/test/cmd/observer/
+          env:
+            - name: SYSTEM_NAMESPACE
+              value: default
+            - name: K8S_EVENT_SINK
+              value: '{"apiVersion": "v1", "kind": "Namespace", "name": "default"}'
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: observer
+  namespace: default
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: observer
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - "namespaces"
+      - "events"
+    verbs:
+      - "get"
+      - "list"
+      - "create"
+      - "update"
+      - "delete"
+      - "patch"
+      - "watch"
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: observer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: observer
+subjects:
+  - kind: ServiceAccount
+    name: observer
+    namespace: default
