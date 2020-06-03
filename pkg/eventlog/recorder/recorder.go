@@ -21,7 +21,7 @@ func (r *recorder) Observe(observed api.Observed) error {
 		return err
 	}
 
-	r.out.Eventf(r.on, corev1.EventTypeNormal, "EventObserved",
+	r.out.Eventf(r.on, corev1.EventTypeNormal, api.EventReason,
 		"%s", string(b))
 
 	return nil

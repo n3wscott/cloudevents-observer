@@ -61,19 +61,14 @@ type cloudevent struct {
 	ceOverrides *duckv1.CloudEventOverrides
 }
 
+// Forwards the event.
 func (w *cloudevent) Observe(observed api.Observed) error {
-	event := cloudevents.NewEvent()
-	event.SetSource(observed.Observer)
-	event.SetType("knative-eventing.observed")
+	event := observed.Event
 
 	if w.ceOverrides != nil && w.ceOverrides.Extensions != nil {
 		for n, v := range w.ceOverrides.Extensions {
 			event.SetExtension(n, v)
 		}
-	}
-
-	if err := event.SetData(cloudevents.ApplicationJSON, observed); err != nil {
-		return err
 	}
 
 	if result := w.out.Send(context.Background(), event); !cloudevents.IsACK(result) {
@@ -82,3 +77,26 @@ func (w *cloudevent) Observe(observed api.Observed) error {
 
 	return nil
 }
+
+// this would be a observed event.
+//func (w *cloudevent) Observe(observed api.Observed) error {
+//	event := cloudevents.NewEvent()
+//	event.SetSource(observed.Observer)
+//	event.SetType("knative-eventing.observed")
+//
+//	if w.ceOverrides != nil && w.ceOverrides.Extensions != nil {
+//		for n, v := range w.ceOverrides.Extensions {
+//			event.SetExtension(n, v)
+//		}
+//	}
+//
+//	if err := event.SetData(cloudevents.ApplicationJSON, observed); err != nil {
+//		return err
+//	}
+//
+//	if result := w.out.Send(context.Background(), event); !cloudevents.IsACK(result) {
+//		return result
+//	}
+//
+//	return nil
+//}

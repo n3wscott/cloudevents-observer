@@ -11,6 +11,8 @@ spec:
           env:
             - name: SYSTEM_NAMESPACE
               value: default
+            - name: OBSERVER
+              value: first_hop
             - name: K8S_EVENT_SINK
               value: '{"apiVersion": "v1", "kind": "Namespace", "name": "default"}'
 
@@ -29,7 +31,47 @@ spec:
     ref:
       apiVersion: serving.knative.dev/v1
       kind: Service
+      name: observer2
+  ceOverrides:
+    extensions:
+      observer1: recorded
+
+---
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: observer2
+spec:
+  template:
+    spec:
+      serviceAccountName: observer
+      containers:
+        - image: ko://knative.dev/eventing/test/cmd/observer/
+          env:
+            - name: SYSTEM_NAMESPACE
+              value: default
+            - name: OBSERVER
+              value: second_hop
+            - name: K8S_EVENT_SINK
+              value: '{"apiVersion": "v1", "kind": "Namespace", "name": "default"}'
+
+---
+
+apiVersion: sources.knative.dev/v1alpha2
+kind: SinkBinding
+metadata:
+  name: observer2
+spec:
+  subject:
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    name: observer2
+  sink:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
       name: sockeye
   ceOverrides:
     extensions:
-      hello: world
+      observer2: recorded
