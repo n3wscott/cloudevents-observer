@@ -1,4 +1,4 @@
-package main
+package injection
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"knative.dev/pkg/signals"
 )
 
-func injectionEnabled() context.Context {
+func InjectionEnabled() context.Context {
 	ctx := signals.NewContext()
 	cfg := sharedmain.ParseAndGetConfigOrDie()
 	ctx, informers := injection.Default.SetupInformers(ctx, cfg)

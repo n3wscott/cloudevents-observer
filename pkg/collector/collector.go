@@ -11,8 +11,12 @@ import (
 	kubeclient "knative.dev/pkg/client/injection/kube/client"
 )
 
+// Filter observed events, return true if the observation should be included.
+type FilterFn func(ob api.Observed) bool
+
 type Collector interface {
-	List(from duckv1.KReference) ([]api.Observed, error)
+	// List all observed events from a ref, optionally filter (pass filter, && together)
+	List(from duckv1.KReference, filters ...FilterFn) ([]api.Observed, error)
 }
 
 func New(ctx context.Context) Collector {
@@ -23,7 +27,7 @@ type collector struct {
 	client kubernetes.Interface
 }
 
-func (c *collector) List(from duckv1.KReference) ([]api.Observed, error) {
+func (c *collector) List(from duckv1.KReference, filters ...FilterFn) ([]api.Observed, error) {
 	var lister v1.EventInterface
 	if from.Kind == "Namespace" {
 		lister = c.client.CoreV1().Events(from.Name)
@@ -44,6 +48,18 @@ func (c *collector) List(from duckv1.KReference) ([]api.Observed, error) {
 			if err := json.Unmarshal([]byte(v.Message), &ob); err != nil {
 				return nil, err
 			}
+			if filters != nil {
+				skip := false
+				for _, fn := range filters {
+					if !fn(ob) {
+						skip = true
+					}
+				}
+				if skip {
+					continue
+				}
+			}
+
 			obs = append(obs, ob)
 			// TODO: worry about v.Count
 		}

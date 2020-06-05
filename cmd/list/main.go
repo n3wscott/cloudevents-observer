@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"knative.dev/eventing/test/pkg/collector"
+	"knative.dev/eventing/test/pkg/injection"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 
 	// Uncomment the following line to load the gcp plugin (only required to authenticate against GKE clusters).
@@ -15,7 +16,7 @@ func main() {
 	// only scrape k8s.
 
 	flag.Parse()
-	ctx := injectionEnabled()
+	ctx := injection.InjectionEnabled()
 
 	c := collector.New(ctx)
 

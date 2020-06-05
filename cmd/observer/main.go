@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"knative.dev/eventing/test/pkg/injection"
 	"os"
 
 	"knative.dev/eventing/test/pkg/eventlog/cloudout"
@@ -12,7 +13,7 @@ import (
 
 func main() {
 	flag.Parse()
-	ctx := injectionEnabled()
+	ctx := injection.InjectionEnabled()
 
 	obs := observer.New(
 		writer.NewEventLog(ctx, os.Stdout),
